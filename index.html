@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MatchLens — Football Analytics</title>
+<style>
+:root{--bg:#0b1220;--panel:#121d30;--panel2:#17243a;--line:#293951;--text:#eef4ff;--muted:#9eafc8;--green:#45e0a0;--blue:#7aa7ff;--amber:#ffd479;--red:#ff8f9b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#142640 0,#0b1220 52%);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:1100px;margin:auto;padding:24px 16px 56px}.top{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#45e0a0,#7aa7ff);display:grid;place-items:center;color:#071321;font-size:23px;font-weight:900}
+h1{font-size:clamp(24px,4vw,34px);line-height:1.1;margin:0}.sub{color:var(--muted);font-size:14px;margin-top:5px}
+.badge{border:1px solid var(--line);border-radius:99px;padding:7px 12px;color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(270px,.65fr);gap:16px}.panel{background:rgba(18,29,48,.92);border:1px solid var(--line);border-radius:18px;padding:18px;min-width:0}
+h2{font-size:18px;margin:0 0 12px}h3{font-size:15px;margin:0 0 10px}.muted{color:var(--muted)}.small{font-size:12px;color:var(--muted)}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}input,select,button{font:inherit}input,select{width:100%;background:#0b1526;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;min-height:44px}button{border:0;border-radius:10px;background:var(--green);color:#071321;font-weight:800;padding:12px 16px;min-height:44px;cursor:pointer}button.secondary{background:var(--panel2);border:1px solid var(--line);color:var(--text)}button:disabled{opacity:.55;cursor:wait}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}.controls .wide{grid-column:1/-1}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.row button{flex:1}
+.notice{padding:11px 13px;border-radius:10px;background:#0b1526;border:1px solid var(--line);color:var(--muted);font-size:13px;margin-top:12px}.notice.error{color:var(--red)}.notice.good{color:var(--green)}
+.matches{display:grid;gap:10px;margin-top:14px}.match{border:1px solid var(--line);border-radius:13px;padding:13px;background:#0d182a}.match-head{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin-bottom:10px}.teams{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}.team{font-weight:700;min-width:0;overflow-wrap:anywhere}.team:last-child{text-align:right}.score{font-size:20px;font-weight:900;white-space:nowrap}.live{color:var(--green);font-weight:800}.analyze{width:100%;margin-top:12px;background:var(--panel2);border:1px solid var(--line);color:var(--text)}
+.result-empty{padding:24px 12px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.result-top{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.confidence{font-size:12px;color:var(--amber)}
+.probs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.prob{padding:12px 8px;text-align:center;border-radius:12px;background:#0b1526;border:1px solid var(--line)}.prob b{display:block;font-size:22px}.prob span{font-size:12px;color:var(--muted)}
+.bar{display:flex;height:10px;border-radius:99px;overflow:hidden;background:#0b1526;margin:8px 0 16px}.bar span:nth-child(1){background:var(--blue)}.bar span:nth-child(2){background:var(--amber)}.bar span:nth-child(3){background:var(--green)}
+.stat{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}.stat:last-child{border-bottom:0}.stat b{text-align:right}
+ul{padding-left:19px;color:var(--muted);font-size:13px}li{margin:6px 0}.footer{margin-top:18px;color:var(--muted);font-size:12px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.controls{grid-template-columns:1fr}.controls .wide{grid-column:auto}.panel{padding:15px}}
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div class="brand"><div class="logo">M</div><div><h1>MatchLens</h1><div class="sub">Football data · form analysis · transparent estimates</div></div></div>
+    <div class="badge">ANALYTICS DEMO · NOT CERTAINTY</div>
+  </header>
+  <section class="grid">
+    <div class="panel">
+      <h2>Find matches</h2>
+      <p class="muted" style="font-size:13px;margin-top:-5px">Load fixtures and scores through a secure server connection. The API token is stored in your Netlify environment settings, not in this page.</p>
+      <div class="controls">
+        
+        <div><label for="competition">Competition</label><select id="competition">
+          <option value="PL">Premier League</option><option value="CL">UEFA Champions League</option><option value="PD">La Liga</option><option value="BL1">Bundesliga</option><option value="SA">Serie A</option><option value="FL1">Ligue 1</option><option value="DED">Eredivisie</option><option value="PPL">Primeira Liga</option><option value="BSA">Brasileirão</option><option value="WC">World Cup</option>
+        </select></div>
+        <div><label for="day">Match date</label><input id="day" type="date"></div>
+      </div>
+      <div class="row"><button id="load">Load matches</button><button id="demo" class="secondary" type="button">Try demo</button></div>
+      <div id="status" class="notice" role="status" aria-live="polite">Choose a competition and load matches after the site owner configures the API token in Netlify. Demo mode works without live access.</div>
+      <div id="matches" class="matches"><div class="result-empty">Matches will appear here.</div></div>
+    </div>
+    <aside class="panel">
+      <h2>Match analysis</h2>
+      <div id="analysis"><div class="result-empty">Choose “Analyse” on a match to see a transparent estimate.</div></div>
+      <div class="footer">Probabilities are model estimates based on limited match data—not guarantees. Do not use them as a substitute for your own judgement.</div>
+    </aside>
+  </section>
+  <section class="panel" style="margin-top:16px">
+    <h2>What the model considers</h2>
+    <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+      <div><h3>Recent results</h3><div class="small">Recent goals scored and conceded when team match history is available.</div></div>
+      <div><h3>Home advantage</h3><div class="small">A small home-field adjustment is applied to expected goals.</div></div>
+      <div><h3>Live match state</h3><div class="small">For matches in progress, the current score and remaining time influence the estimate.</div></div>
+    </div>
+    <p class="small" style="margin-top:14px">Important: no single page can reliably gather “all data online.” Injuries, lineups, tactical changes, weather and live event feeds may be missing or delayed. This starter uses the data available from the connected provider.</p>
+  </section>
+</main>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const today=new Date(); $('day').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+let currentMatches=[], demoMode=false;
+const setStatus=(msg,type='')=>{$('status').textContent=msg;$('status').className='notice '+type};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const api=async(path)=>{const r=await fetch('/.netlify/functions/football?path='+encodeURIComponent(path));let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.error||('Football data request failed ('+r.status+').'));return j};
+function dateRange(){const d=$('day').value;if(!d)throw new Error('Choose a match date.');return '?dateFrom='+encodeURIComponent(d)+'&dateTo='+encodeURIComponent(d)}
+function renderMatches(matches){
+ currentMatches=matches;
+ if(!matches.length){$('matches').innerHTML='<div class="result-empty">No matches returned for this date and competition.</div>';return}
+ $('matches').innerHTML=matches.map((m,i)=>{const status=m.status||'SCHEDULED',live=['IN_PLAY','PAUSED','LIVE'].includes(status);const h=m.score?.fullTime?.home??m.score?.halfTime?.home, a=m.score?.fullTime?.away??m.score?.halfTime?.away;const score=(h!==null&&h!==undefined&&a!==null&&a!==undefined)?h+' – '+a:'vs';const dt=m.utcDate?new Date(m.utcDate).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';return `<article class="match"><div class="match-head"><span>${esc(m.competition?.name||$('competition').selectedOptions[0].textContent)}</span><span class="${live?'live':''}">${live?'● LIVE '+(m.minute?m.minute+"'":''):esc(status.replaceAll('_',' '))} ${dt?' · '+esc(dt):''}</span></div><div class="teams"><div class="team">${esc(m.homeTeam?.name)}</div><div class="score">${esc(score)}</div><div class="team">${esc(m.awayTeam?.name)}</div></div><button class="analyze" type="button" data-index="${i}">Analyse match →</button></article>`}).join('');
+ $('matches').querySelectorAll('button[data-index]').forEach(b=>b.addEventListener('click',()=>analyse(currentMatches[Number(b.dataset.index)])));
+}
+async function loadMatches(){
+ $('load').disabled=true;setStatus('Loading match data…');
+ try{demoMode=false;const data=await api('/competitions/'+encodeURIComponent($('competition').value)+'/matches'+dateRange());renderMatches(data.matches||[]);setStatus('Loaded '+(data.matches||[]).length+' match(es). Select one to analyse.','good')}
+ catch(e){setStatus(e.message,'error');$('matches').innerHTML='<div class="result-empty">Could not load live data. Try again after checking your token and connection.</div>'}
+ finally{$('load').disabled=false}
+}
+function demo(){
+ demoMode=true;
+ const d=$('day').value+'T19:00:00Z';
+ renderMatches([
+ {id:'demo1',competition:{name:'Demo League'},utcDate:d,status:'IN_PLAY',minute:58,homeTeam:{id:1,name:'Northbridge FC'},awayTeam:{id:2,name:'Harbour United'},score:{fullTime:{home:1,away:0}}},
+ {id:'demo2',competition:{name:'Demo League'},utcDate:d,status:'SCHEDULED',homeTeam:{id:3,name:'Kings Athletic'},awayTeam:{id:4,name:'Valley Rovers'},score:{fullTime:{home:null,away:null}}}
+ ]);
+ setStatus('Demo data only — fictional teams and scores. Live data requires the site owner to configure the server API token.','good');
+}
+function poisson(k,lam){let p=Math.exp(-lam),sum=p;for(let i=1;i<=k;i++){p*=lam/i;sum+=p}return sum}
+function pmf(k,lam){if(k<0)return 0;let p=Math.exp(-lam);for(let i=1;i<=k;i++)p*=lam/i;return p}
+function estimate(hg,ag,homeLam,awayLam){
+ let hw=0,dr=0,aw=0;for(let h=0;h<=10;h++)for(let a=0;a<=10;a++){const p=pmf(h,homeLam)*pmf(a,awayLam);if(h>a)hw+=p;else if(h===a)dr+=p;else aw+=p}
+ const total=hw+dr+aw||1;return [hw/total*100,dr/total*100,aw/total*100]
+}
+async function recentStats(teamId){
+ const data=await api('/teams/'+teamId+'/matches?status=FINISHED&limit=10');
+ const ms=(data.matches||[]).filter(m=>m.score?.fullTime?.home!==null&&m.score?.fullTime?.away!==null).slice(-8);
+ if(!ms.length)return {gf:1.35,ga:1.35,n:0};
+ let gf=0,ga=0;ms.forEach(m=>{const isHome=m.homeTeam.id===teamId;gf+=isHome?m.score.fullTime.home:m.score.fullTime.away;ga+=isHome?m.score.fullTime.away:m.score.fullTime.home});
+ return {gf:gf/ms.length,ga:ga/ms.length,n:ms.length};
+}
+async function analyse(m){
+ $('analysis').innerHTML='<div class="result-empty">Calculating from available match data…</div>';
+ try{
+  const live=['IN_PLAY','PAUSED','LIVE'].includes(m.status);
+  let hs={gf:1.35,ga:1.35,n:0},as={gf:1.2,ga:1.35,n:0};
+  if(!demoMode&&m.homeTeam?.id&&m.awayTeam?.id){
+   const results=await Promise.allSettled([recentStats(m.homeTeam.id),recentStats(m.awayTeam.id)]);
+   if(results[0].status==='fulfilled')hs=results[0].value;
+   if(results[1].status==='fulfilled')as=results[1].value;
+  } else if(demoMode){hs={gf:1.8,ga:1.0,n:8};as={gf:1.2,ga:1.5,n:8}}
+  let hl=Math.max(.15,(hs.gf+as.ga)/2*1.08), al=Math.max(.15,(as.gf+hs.ga)/2*.92);
+  let currentH=Number(m.score?.fullTime?.home??0),currentA=Number(m.score?.fullTime?.away??0),minute=Number(m.minute||0);
+  let shownH=currentH,shownA=currentA;
+  if(live){const rem=Math.max(0,(90-minute)/90);hl=Math.max(.03,hl*rem);al=Math.max(.03,al*rem)}
+  let probs;
+  if(live){
+   // Estimate the final result by adding likely remaining goals to the current score.
+   let hw=0,dr=0,aw=0;for(let x=0;x<=7;x++)for(let y=0;y<=7;y++){let p=pmf(x,hl)*pmf(y,al),diff=(currentH+x)-(currentA+y);if(diff>0)hw+=p;else if(diff===0)dr+=p;else aw+=p}
+   const t=hw+dr+aw||1;probs=[hw/t*100,dr/t*100,aw/t*100];
+  }else probs=estimate(0,0,hl,al);
+  const rounded=probs.map(x=>Math.round(x));rounded[rounded.indexOf(Math.max(...rounded))]+=100-rounded.reduce((a,b)=>a+b,0);
+  const top=Math.max(...rounded),label=rounded[0]===top?'Home win':rounded[1]===top?'Draw':'Away win';
+  const scoreText=(m.score?.fullTime?.home!=null&&m.score?.fullTime?.away!=null)?m.score.fullTime.home+' – '+m.score.fullTime.away:(live?shownH+' – '+shownA:'Not started');
+  const dataNote=hs.n+as.n>0?`Recent form sample: ${hs.n} home-team matches and ${as.n} away-team matches.`:'Recent team history unavailable; baseline assumptions used.';
+  $('analysis').innerHTML=`<div class="result-top"><div><div class="small">${esc(m.competition?.name||'Match analysis')}</div><h3 style="margin-top:4px">${esc(m.homeTeam?.name)} vs ${esc(m.awayTeam?.name)}</h3></div><span class="confidence">${live?'LIVE estimate':'Pre-match estimate'}</span></div>
+   <div class="probs"><div class="prob"><b>${rounded[0]}%</b><span>Home win</span></div><div class="prob"><b>${rounded[1]}%</b><span>Draw</span></div><div class="prob"><b>${rounded[2]}%</b><span>Away win</span></div></div>
+   <div class="bar"><span style="width:${rounded[0]}%"></span><span style="width:${rounded[1]}%"></span><span style="width:${rounded[2]}%"></span></div>
+   <div class="stat"><span>Current score</span><b>${esc(scoreText)}</b></div><div class="stat"><span>Most likely outcome</span><b>${label}</b></div><div class="stat"><span>Estimated goals remaining (home)</span><b>${hl.toFixed(2)}</b></div><div class="stat"><span>Estimated goals remaining (away)</span><b>${al.toFixed(2)}</b></div>
+   <p class="small" style="margin-top:12px">${esc(dataNote)} Uses a simple Poisson-style goal model with a modest home adjustment. It does not include confirmed lineups, injuries, xG, red cards or live shot data unless supplied by the provider.</p>`;
+ }catch(e){$('analysis').innerHTML=`<div class="notice error">${esc(e.message)}<br><br>Try Demo for an example without an API token.</div>`}
+}
+$('load').addEventListener('click',loadMatches);$('demo').addEventListener('click',demo);
+})();
+</script>
+</body>
+</html>
